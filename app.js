@@ -106,30 +106,40 @@ function Gist() {
   
         this.result.forEach(function (gist) {
 
-            var filename = '';
-            var type = '';
-            var url = '';
-            var key = Object.keys(gist.files)[0];
-            if (gist.files.hasOwnProperty(key)) {
-                filename = gist.files[key].filename;
-                url = gist.files[key].raw_url;
-                type = gist.files[key].type;
-            }
+            var files = [];
 
-            html[++i] = '<tr>';
-            html[++i] = '<td><a href="'+escapeHtml(url)+'">'+escapeHtml(filename)+'</a></td>';
-            html[++i] = '<td>'+escapeHtml(type)+'</td>';
-            html[++i] = '<td><ul>';
-
-            if (gist.hasOwnProperty('forks')) {
-                gist.forks.forEach(function (fork) {
-                    html[++i] = '<li>';
-                    html[++i] = '<img src="'+fork.owner.avatar_url+'" class="avatar">';
-                    html[++i] = ' <a href="'+fork.owner.html_url+'">'+fork.owner.login+'</a></li>';
+            for (var file in gist.files) {
+                var name = file;
+                var type = gist.files[file].type;
+                var url = gist.files[file].raw_url;
+                files.push({
+                    'name' : name,
+                    'type' : type,
+                    'url' : url
                 });
             }
 
-            html[++i] = '</ul></td></tr>';
+            html[++i] = '<tr><td><ul>';
+            files.forEach (function (file) {
+                html[++i] = '<li><a href="'+escapeHtml(file.url)+'">'+escapeHtml(file.name)+'</a></li>';
+            });
+            html[++i] = '</ul></td><td><ul>';
+            files.forEach (function (file) {
+                html[++i] = '<li><span>'+escapeHtml(file.type)+'</span></li>';
+            });   
+            html[++i] = '</ul></td>';
+
+            html[++i] = '<td><ul>';
+            if (gist.hasOwnProperty('forks')) {
+                gist.forks.forEach(function (fork) {
+                    html[++i] = '<li>';
+                    html[++i] = '<img src="'+escapeHtml(fork.owner.avatar_url)+'" class="avatar">';
+                    html[++i] = ' <a href="'+escapeHtml(fork.owner.html_url)+'">'+escapeHtml(fork.owner.login)+'</a></li>';
+                });
+            }
+            html[++i] = '</ul></td>';
+
+            html[++i] = '</tr>';
         });
         html[++i] = '</tbody></table>';
 
