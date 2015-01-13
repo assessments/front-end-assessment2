@@ -38,6 +38,9 @@ function Gist() {
 
     this.result = [];
 
+    //the counter property tracks when all links have been checked
+    this.counter = 0;
+
     /**
      * Controllers
      */
@@ -47,11 +50,41 @@ function Gist() {
         $.getJSON( this.requestUrl+'users/'+this.username+'/gists' )
             .done(function( result ) {
                 self.result = result;
-                self.draw();
+                self.loadForks();
             })
             .fail(function( jqxhr, textStatus, error ) {
                 console.log( 'Error loading data ('+textStatus + "). " + error);
             });
+    };
+
+    this.loadForks = function () {
+        var self = this;
+        this.counter = 0; //reset
+        this.result.forEach(function (gist, index) {
+
+            $.getJSON( gist.forks_url+'?page=1&per_page=3' ) //limit to 3 forks
+                .done(function( data ) {
+                    self.counter += 1;
+                    self.result[index].forks = data;
+
+                    if (self.completed()) {
+                        self.draw();
+                    }
+                })
+                .fail(function( jqxhr, textStatus, error ) {
+                    console.log( 'Error loading data ('+textStatus + "). " + error);
+                });
+
+        });
+    };
+
+    //the completed method checks whether all asynchronous link requests have completed
+    this.completed = function () {
+        var result = false;
+        if (this.counter >= this.result.length-1) {
+            result = true;
+        }
+        return result;
     };
 
     this.fetch = function () {
@@ -70,14 +103,29 @@ function Gist() {
 
         html[++i] = '<table class="w-table w-fixed w-stripe">'
         html[++i] = '<thead><tr><th>Name</th><th>Filetype</th><th>Fork</th></tr></thead>';
-        console.log(this.result); 
+  
         this.result.forEach(function (gist) {
-            var filename = gist.files['test'].filename;
-            var type = gist.files['test'].type;
+
+            var filename = '';
+            var type = '';
+            var url = '';
+            var key = Object.keys(gist.files)[0];
+            if (gist.files.hasOwnProperty(key)) {
+                filename = gist.files[key].filename;
+                url = gist.files[key].raw_url;
+                type = gist.files[key].type;
+            }
+
             html[++i] = '<tr>';
-            html[++i] = '<td>'+escapeHtml(filename)+'</td>';
+            html[++i] = '<td><a href="'+escapeHtml(url)+'">'+escapeHtml(filename)+'</a></td>';
             html[++i] = '<td>'+escapeHtml(type)+'</td>';
-            html[++i] = '<td></td>';
+            html[++i] = '<td>';
+
+            gist.forks.forEach(function (fork) {
+                html[++i] = '<p>'+fork.owner.login+'</p>';
+            });
+
+            html[++i] = '</td>';
             html[++i] = '</tr>';
         });
         html[++i] = '</tbody></table>';
