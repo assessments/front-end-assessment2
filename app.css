@@ -20,6 +20,20 @@ table ul {
 	margin-right: 2px;
 }
 
+.w-information, .w-warning, .w-error, #controls {
+	border-radius: 8px;
+}
+
+#controls {
+	border: 2px solid #999;
+	background-color: #ccc;
+	padding: 10px;
+}
+
+#username {
+	width: 700px;
+}
+
 /* reset framework styles*/
 
 header > div > a > div {

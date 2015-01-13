@@ -38,6 +38,8 @@ function Gist() {
 
     this.result = [];
 
+    this.error = null;
+
     //the counter property tracks when all links have been checked
     this.counter = 0;
 
@@ -47,35 +49,52 @@ function Gist() {
 
     this.load = function() {
         var self = this;
-        $.getJSON( this.requestUrl+'users/'+this.username+'/gists' )
-            .done(function( result ) {
-                self.result = result;
+        this.result = []; //reset
+        self.error = null; //reset
+        $.ajax({
+            url: this.requestUrl+'users/'+this.username+'/gists',
+            dataType: "json",
+            success: function (data) {
+                self.result = data;
                 self.loadForks();
-            })
-            .fail(function( jqxhr, textStatus, error ) {
-                console.log( 'Error loading data ('+textStatus + "). " + error);
-            });
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(xhr.status+' : '+thrownError);
+                self.drawError(xhr.status+' : '+thrownError);
+            }
+        });
     };
 
     this.loadForks = function () {
         var self = this;
         this.counter = 0; //reset
-        this.result.forEach(function (gist, index) {
 
-            $.getJSON( gist.forks_url+'?page=1&per_page=3' ) //limit to 3 forks
-                .done(function( data ) {
-                    self.counter += 1;
-                    self.result[index].forks = data;
+        if (this.result.length > 0) {
 
-                    if (self.completed()) {
-                        self.draw();
+            this.result.forEach(function (gist, index) {
+
+                $.ajax({
+                    url: gist.forks_url+'?page=1&per_page=3',
+                    dataType: "json",
+                    success: function (data) {
+                        self.counter += 1;
+                        self.result[index].forks = data;
+
+                        if (self.completed()) {
+                            self.draw();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        console.log(xhr.status+' : '+thrownError);
                     }
-                })
-                .fail(function( jqxhr, textStatus, error ) {
-                    console.log( 'Error loading data ('+textStatus + "). " + error);
                 });
 
-        });
+            });
+
+        } else {
+            self.draw();
+        }
+
     };
 
     //the completed method checks whether all asynchronous link requests have completed
@@ -100,11 +119,12 @@ function Gist() {
 
         var self = this;
         var html = [], i = -1;
+
         html[++i] = '<p>Gists for username <strong>'+escapeHtml(this.username)+'</strong>:</p>';
 
         html[++i] = '<table class="w-table w-fixed w-stripe">'
         html[++i] = '<thead><tr><th>Name</th><th>Filetype</th><th>Fork</th></tr></thead>';
-  
+      
         this.result.forEach(function (gist) {
 
             var files = [];
@@ -148,6 +168,10 @@ function Gist() {
         html[++i] = '</tbody></table>';
 
         $('#result').html(html.join(''));       
+    };
+
+    this.drawError = function (error) {
+        $('#result').html('<p class="w-error">'+escapeHtml(error)+'</p>');
     };
 
     this.getColor = function (language) {
