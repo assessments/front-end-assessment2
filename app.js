@@ -98,6 +98,7 @@ function Gist() {
 
     this.draw = function (type) {
 
+        var self = this;
         var html = [], i = -1;
         html[++i] = '<p>Gists for username <strong>'+escapeHtml(this.username)+'</strong>:</p>';
 
@@ -111,10 +112,12 @@ function Gist() {
             for (var file in gist.files) {
                 var name = file;
                 var type = gist.files[file].type;
+                var language = gist.files[file].language;
                 var url = gist.files[file].raw_url;
                 files.push({
                     'name' : name,
                     'type' : type,
+                    'language' : language,
                     'url' : url
                 });
             }
@@ -125,7 +128,8 @@ function Gist() {
             });
             html[++i] = '</ul></td><td><ul>';
             files.forEach (function (file) {
-                html[++i] = '<li><span>'+escapeHtml(file.type)+'</span></li>';
+                html[++i] = '<li><span class="tag" style="background-color: '+self.getColor(file.language)+';">';
+                html[++i] = escapeHtml(file.type)+'</span></li>';
             });   
             html[++i] = '</ul></td>';
 
@@ -145,6 +149,38 @@ function Gist() {
 
         $('#result').html(html.join(''));       
     };
+
+    this.getColor = function (language) {
+        //color code the top Github languages: http://adambard.com/blog/top-github-languages-2014/
+        switch (language) {
+            case 'JavaScript':
+                return '#69A9CA';
+            case 'Java':
+                return '#C76842';
+            case 'Ruby':
+                return '#68843C';
+            case 'C':
+                return '#8583C2';
+            case 'CSS':
+                return '#C06472';
+            case 'PHP':
+                return '#84D747';
+            case 'Python':
+                return '#67D1B8';
+            case 'C++':
+                return '#C99336';
+            case 'Objective-C':
+                return '#6C7970';
+            case 'C#':
+                return '#CF74B7';
+            case 'Shell':
+                return '#CFD14B';
+            case 'R':
+                return '#78D483';
+            default:
+                return '#CCC';
+        }
+    }
 
     /**
      * Event Handlers

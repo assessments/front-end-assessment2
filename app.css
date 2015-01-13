@@ -4,6 +4,7 @@
 	height: 40px;
 	display: inline-block;
 	vertical-align: middle;
+	border: 1px solid #999;
 }
 
 table ul {
@@ -11,6 +12,13 @@ table ul {
 	padding: 0;
 }
 
+.tag {
+	padding: 2px;
+	font-weight: bold;
+	border: 2px solid #999;
+	border-radius: 5px;
+	margin-right: 2px;
+}
 
 /* reset framework styles*/
 
