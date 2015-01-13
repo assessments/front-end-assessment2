@@ -3,7 +3,7 @@
 Requirements
 ------------
 
-- a modern browser (IE 9+)
+- a modern browser (tested on IE 10, Chome, Firefox)
 
 Concepts illustrated
 --------------------

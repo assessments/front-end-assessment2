@@ -26,27 +26,38 @@ function escapeHtml(string) {
  * Gist class
  */
 
-function Gist() {
+function Gists() {
 
     /**
      * Models
      */
 
+    //the API base url
     this.requestUrl = 'https://api.github.com/';
 
+    //the username to search for
     this.username = '';
 
+    //the response object containing gists
     this.result = [];
 
+    //error response, if any
     this.error = null;
 
-    //the counter property tracks when all links have been checked
+    //the counter property tracks when all fork data has been asynchronously received
     this.counter = 0;
 
     /**
      * Controllers
      */
 
+    //the fetch method invokes a search request
+    this.fetch = function () {
+        this.username = $('#username').val();
+        this.load();
+    };
+
+    //the load method retrieves the list of gists from the server
     this.load = function() {
         var self = this;
         this.result = []; //reset
@@ -65,6 +76,7 @@ function Gist() {
         });
     };
 
+    //the loadForks method asynchronously retrieves the latest forks for every gist
     this.loadForks = function () {
         var self = this;
         this.counter = 0; //reset
@@ -97,7 +109,7 @@ function Gist() {
 
     };
 
-    //the completed method checks whether all asynchronous link requests have completed
+    //the completed method checks whether all asynchronous fork data requests have completed
     this.completed = function () {
         var result = false;
         if (this.counter >= this.result.length-1) {
@@ -106,41 +118,41 @@ function Gist() {
         return result;
     };
 
-    this.fetch = function () {
-        this.username = $('#username').val();
-        this.load();
-    };
+    //the walkFiles method returns a view-friendly structure with all file metadata
+    this.walkFiles = function(gist) {
+        var self = this;
+        var files = [];
+        for (var file in gist.files) {
+            files.push({
+                'name' : file,
+                'type' : gist.files[file].type,
+                'language' : gist.files[file].language,
+                'color' : self.getColor(gist.files[file].language),
+                'url' : gist.files[file].raw_url
+            });
+        }
+        return files;
+    }
 
     /**
      * Views
+     *
+     * In a larger app, consider a view framework (e.g. React) or template solution (e.g Handlebars.js)
      */
 
+    //the draw method renders the response to the page
     this.draw = function (type) {
 
         var self = this;
         var html = [], i = -1;
 
         html[++i] = '<p>Gists for username <strong>'+escapeHtml(this.username)+'</strong>:</p>';
-
         html[++i] = '<table class="w-table w-fixed w-stripe">'
         html[++i] = '<thead><tr><th>Name</th><th>Filetype</th><th>Fork</th></tr></thead>';
       
         this.result.forEach(function (gist) {
 
-            var files = [];
-
-            for (var file in gist.files) {
-                var name = file;
-                var type = gist.files[file].type;
-                var language = gist.files[file].language;
-                var url = gist.files[file].raw_url;
-                files.push({
-                    'name' : name,
-                    'type' : type,
-                    'language' : language,
-                    'url' : url
-                });
-            }
+            var files = self.walkFiles(gist);
 
             html[++i] = '<tr><td><ul>';
             files.forEach (function (file) {
@@ -148,7 +160,7 @@ function Gist() {
             });
             html[++i] = '</ul></td><td><ul>';
             files.forEach (function (file) {
-                html[++i] = '<li><span class="tag" style="background-color: '+self.getColor(file.language)+';">';
+                html[++i] = '<li><span class="tag" style="background-color: '+file.color+';">';
                 html[++i] = escapeHtml(file.type)+'</span></li>';
             });   
             html[++i] = '</ul></td>';
@@ -170,12 +182,14 @@ function Gist() {
         $('#result').html(html.join(''));       
     };
 
+    //the drawError method displays error information for the user
     this.drawError = function (error) {
         $('#result').html('<p class="w-error">'+escapeHtml(error)+'</p>');
     };
 
+    //the getColor method returns a unique color for the top Github languages (used in tags)
+    // http://adambard.com/blog/top-github-languages-2014/
     this.getColor = function (language) {
-        //color code the top Github languages: http://adambard.com/blog/top-github-languages-2014/
         switch (language) {
             case 'JavaScript':
                 return '#69A9CA';
@@ -216,6 +230,7 @@ function Gist() {
 
 $( document ).ready(function() {
 
-    var gist = new Gist();
+    //Instantiation the Gists class
+    var gists = new Gists();
 
 });
