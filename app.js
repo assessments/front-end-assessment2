@@ -119,14 +119,17 @@ function Gist() {
             html[++i] = '<tr>';
             html[++i] = '<td><a href="'+escapeHtml(url)+'">'+escapeHtml(filename)+'</a></td>';
             html[++i] = '<td>'+escapeHtml(type)+'</td>';
-            html[++i] = '<td>';
+            html[++i] = '<td><ul>';
 
-            gist.forks.forEach(function (fork) {
-                html[++i] = '<p>'+fork.owner.login+'</p>';
-            });
+            if (gist.hasOwnProperty('forks')) {
+                gist.forks.forEach(function (fork) {
+                    html[++i] = '<li>';
+                    html[++i] = '<img src="'+fork.owner.avatar_url+'" class="avatar">';
+                    html[++i] = ' <a href="'+fork.owner.html_url+'">'+fork.owner.login+'</a></li>';
+                });
+            }
 
-            html[++i] = '</td>';
-            html[++i] = '</tr>';
+            html[++i] = '</ul></td></tr>';
         });
         html[++i] = '</tbody></table>';
 

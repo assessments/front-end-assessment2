@@ -1,0 +1,19 @@
+
+.avatar {
+	width: 40px;
+	height: 40px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+table ul {
+	list-style: none;
+	padding: 0;
+}
+
+
+/* reset framework styles*/
+
+header > div > a > div {
+	padding: 0;
+}
